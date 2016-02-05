@@ -460,9 +460,10 @@ int main()
 	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
 	glBindVertexArray(0);
 
+	while()
 	glfwSwapBuffers(window);
 	glfwPollEvents();
-	system("Pause");
+	
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	//Startup();
