@@ -97,9 +97,9 @@ void Application::draw()
 	//sun
 	Gizmos::addSphere(vec3(0, 0, 0), 1.f, 10, 10, glm::vec4(1, .5, 0, 1));
 	//orbit ring
-	Gizmos::addArcRing(vec3(0, 0, 0), 0.f, 2.7f, 2.8f, 4.f, 100, glm::vec4(1), &glm::mat4(1.02));
-	Gizmos::addArcRing(vec3(0, 0, 0), 0.f, 2.7f, 2.8f, 4.f, 100, glm::vec4(1), &glm::mat4(2.02));
-	Gizmos::addArcRing(vec3(0, 0, 0), 0.f, 2.7f, 2.8f, 4.f, 100, glm::vec4(1), &glm::mat4(3.02));
+	Gizmos::addArcRing(vec3(0, 0, 0), 0.f, 2.7f, 2.8f, 4.f, 100, glm::vec4(1), &glm::mat4(1.02f));
+	Gizmos::addArcRing(vec3(0, 0, 0), 0.f, 2.7f, 2.8f, 4.f, 100, glm::vec4(1), &glm::mat4(2.02f));
+	Gizmos::addArcRing(vec3(0, 0, 0), 0.f, 2.7f, 2.8f, 4.f, 100, glm::vec4(1), &glm::mat4(3.02f));
 	//Mercury
 
 	Gizmos::addSphere(vec3(Application::m_x, 0, Application::m_y), .2f, 10, 10, glm::vec4(1, 0, 0, 1), &glm::mat4(1.5));

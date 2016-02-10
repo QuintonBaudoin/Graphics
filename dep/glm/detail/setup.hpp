@@ -51,7 +51,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////
 // Platform
-
+#define GLM_FORCE_PURE
 #define GLM_PLATFORM_UNKNOWN		0x00000000
 #define GLM_PLATFORM_WINDOWS		0x00010000
 #define GLM_PLATFORM_LINUX			0x00020000

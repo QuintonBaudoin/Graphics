@@ -79,7 +79,7 @@ namespace glm
 	operator/(Vec lh, T const & s){ \
 		return lh *= 1.0f / s; \
 	}
-
+//
 GLM_IMPLEMENT_SCAL_MULT(vec2)
 GLM_IMPLEMENT_SCAL_MULT(vec3)
 GLM_IMPLEMENT_SCAL_MULT(vec4)
