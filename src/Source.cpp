@@ -8,10 +8,9 @@ void main()
 	App* app = App::GetInstance();
 
 	app->Init();
-	app->LoadShaders("./src/Frag.frag","./src/Vert.vert");
-	app->AddTriangle();
+	app->LoadShaders("./src/Vert.vert","./src/Frag.frag");
+///	app->AddTriangle();
 	app->Update();
-	system("pause");
 	app->Term();
 }
 
@@ -477,7 +476,7 @@ void main()
 //	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
 //	glBindVertexArray(0);
 //
-//	while()
+//	
 //	glfwSwapBuffers(window);
 //	glfwPollEvents();
 //	
