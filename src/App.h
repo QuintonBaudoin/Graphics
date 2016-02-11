@@ -35,7 +35,7 @@ public:
 	int Init();
 
 	int LoadShaders(char vShaderPath[], char  fShaderPath[]);
-	void AddTriangle(glm::vec4 a, glm::vec4 b, glm::vec4 c);
+	void AddTriangle(glm::vec4 a, glm::vec4 b, glm::vec4 c, glm::vec4 d);
 	std::vector<tinyobj::shape_t> OBJLoader();
 	void Update();
 	
@@ -58,11 +58,13 @@ private:
 	GLFWwindow* window;
 	//int m_ProgramID;
 	void App::DrawObj(std::vector<tinyobj::shape_t> &shapes);
+	
+
 	unsigned int m_VAO, m_VBO, m_IBO, m_ProgramID;
 
 	float m_deltaTime;
 	
-	std::vector<OpenGLInfo> m_GLInfo;
+	//std::vector<OpenGLInfo> m_GLInfo;
 
 
 	class Triangle

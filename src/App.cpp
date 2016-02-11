@@ -13,9 +13,12 @@ App *App::GetInstance()
 }
 int App::Init()
 {
+
 	m_view = glm::lookAt(glm::vec3(0, 0, 10), glm::vec3(0), glm::vec3(0, 1, 0));
 	m_projection = glm::perspective(glm::pi<float>()*0.25f, 16 / 9.f, 0.1f, 1000.f);
 	m_projectionViewMatrix = m_projection * m_view;
+
+	
 
 	if (glfwInit() == false)
 		return -1;
@@ -78,9 +81,13 @@ int App::LoadShaders(char vShaderPath[], char fShaderPath[])
 
 	}
 	else
+	{
 		svsSource = "Failed to Open File\n";
-	file.close();
+		printf(svsSource.c_str());
 
+		return -1;
+	}
+	file.close();
 	file.open(fShaderPath);
 	if (file.is_open())
 	{
@@ -94,18 +101,18 @@ int App::LoadShaders(char vShaderPath[], char fShaderPath[])
 		}
 	}
 	else
+	{
 		sfsSource = "Failed to Open File\n";
+		printf(sfsSource.c_str());
+		return-1;
+	}
 
-
-
+	
+	file.close();
 
 	fsSource = sfsSource.c_str();
 	vsSource = svsSource.c_str();
 
-
-	printf(vsSource);
-	printf("\n");
-	printf(fsSource);
 
 	//file.close();
 	//printf("vsSource \n  #version 150\n \
@@ -202,44 +209,45 @@ void App::AddTriangle(glm::vec4 a, glm::vec4 b, glm::vec4 c, glm::vec4 d)
 	pvertex[0].z = a.z;
 	pvertex[0].w = a.w;
 
-	//VERTEX 1
+	//VERTEX 2
 	pvertex[1].x = b.x;
 	pvertex[1].y = b.y;
 	pvertex[1].z = b.z;
 	pvertex[1].w = b.w;
 
-	//VERTEX 2
+	//VERTEX 3
 	pvertex[2].x = c.x;
 	pvertex[2].y = c.y;
 	pvertex[2].z = c.z;
 	pvertex[2].w = c.w;
 
-	//VERTEX 2
+	//VERTEX 4
 	pvertex[3].x = d.x;
 	pvertex[3].y = d.y;
 	pvertex[3].z = d.z;
 	pvertex[3].w = d.w;
 
 #pragma endregion
-	unsigned int pindices[3];
+	unsigned int pindices[6];
 	pindices[0] = 0;
 	pindices[1] = 1;
 	pindices[2] = 2;
+	pindices[3] = 3;
+	pindices[4] = 2;
+	pindices[5] = 1;
 
-	///////Finish this upper shit
+	glGenVertexArrays(1, &m_VAO);///Generates Vertex array as m_VAO
+	glBindVertexArray(m_VAO);/// Binds m_VAO
 
-	glGenVertexArrays(1, &m_VAO);
-	glBindVertexArray(m_VAO);
-
-	glGenBuffers(1, &m_VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(MyVertex) * 4, &pvertex[0], GL_STATIC_DRAW);
+	glGenBuffers(1, &m_VBO);///Generates Vertex Buffer as m_VBO
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);///Binds m_VBO
+	glBufferData(GL_ARRAY_BUFFER, sizeof(MyVertex) * 4, &pvertex[0], GL_STATIC_DRAW);///buffers data from pvertrex starting at the first index
 
 
 
-	glGenBuffers(1, &m_IBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 6, &pindices[0], GL_STATIC_DRAW);
+	glGenBuffers(1, &m_IBO);///Generates index buffer as m_IBO
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);///Binds m_IBO
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 6, &pindices[0], GL_STATIC_DRAW);///Buffers data from pindices starting at first index
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(MyVertex), BUFFER_OFFSET(0));
 	glEnableVertexAttribArray(0);
@@ -249,19 +257,19 @@ void App::AddTriangle(glm::vec4 a, glm::vec4 b, glm::vec4 c, glm::vec4 d)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	glClearColor(.25f, .25f, .25f, 1);
+	glClearColor(.0f, .0f, .0f, 0);
 	glEnable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUseProgram(m_ProgramID);
 	unsigned int projectionViewUniform = glGetUniformLocation(m_ProgramID, "ProjectionView");
+	//unsigned int deltaTimeUniform = glGetUniformLocation(m_deltaTime, "DeltaTime");
 	glUniformMatrix4fv(projectionViewUniform, 1, false, glm::value_ptr(m_projectionViewMatrix));
-
-
+	//glUniform2fv(deltaTimeUniform, 1, false);
 
 	
 	glBindVertexArray(m_VAO);
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
 	glBindVertexArray(0);
 
 }
@@ -280,6 +288,8 @@ std::vector<tinyobj::shape_t> App::OBJLoader()
 
 void App::DrawObj(std::vector<tinyobj::shape_t> &shapes)
 {
+	std::vector<OpenGLInfo> m_GLInfo;
+	
 	m_GLInfo.resize(shapes.size());
 	/// where as i is mesh index
 	for (unsigned int i = 0; i < shapes.size(); i++)
@@ -316,7 +326,8 @@ void App::DrawObj(std::vector<tinyobj::shape_t> &shapes)
 			(void*)(sizeof(float)*shapes[i].mesh.positions.size()));
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 		glUseProgram(m_ProgramID);
 		int view_proj_uniform = glGetUniformLocation(m_ProgramID, "projection_view");
 		glUniformMatrix4fv(view_proj_uniform, 1, GL_FALSE, (float*)&m_projection);
@@ -333,9 +344,10 @@ void App::Update()
 {
 	float currentTime, Time = 0.0f;
 	glm::vec4 a(0.f, 0.f, 0.f, 1.f);
-	glm::vec4 b(1.f, 0.f, 0.f, 1.f);
-	glm::vec4 c(0.f, 1.f, 0.f, 1.f);
-	glm::vec4 d(1.f, 1.f, 0.f, 1.f);
+	glm::vec4 b(2.f, 0.f, 0.f, 1.f);
+	glm::vec4 c(0.f, 2.f, 0.f, 1.f);
+	glm::vec4 d(2.f, 2.f, 0.f, 1.f);
+	std::vector<tinyobj::shape_t> obj = OBJLoader();
 
 	while (glfwWindowShouldClose(window) == false && glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS)
 	{
@@ -343,18 +355,13 @@ void App::Update()
 		m_deltaTime = currentTime - Time;
 		Time = currentTime;
 
-		glClearColor(0.25f, 0.25f, 0.25f, 1);
 		//glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-		Triangle* trione = new Triangle();
-		Triangle* tritwo = new Triangle();
-
 		std::cout << m_deltaTime << std::endl;
-		
+		AddTriangle(a,b,c,d);
 		//
-		//DrawObj(OBJLoader());
+	   DrawObj(obj);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 
