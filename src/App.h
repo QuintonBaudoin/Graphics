@@ -11,10 +11,19 @@
 
 #define BUFFER_OFFSET(i) ((void*)(i))
 
+
+
 struct MyVertex
 {
-	float x, y, z,w;        //Vertex
-	float nx, ny, nz;     //Normal
+	float x, y, z, w;        //Vertex
+	float nx, ny, nz;        //Normal
+};
+
+struct MyIndicies
+{
+	unsigned index[3];
+	MyIndicies();
+	MyIndicies(unsigned a, unsigned b, unsigned c) { index[0] = a; index[1] = b; index[2] = c; }
 };
 
 struct OpenGLInfo
@@ -23,7 +32,9 @@ struct OpenGLInfo
 	unsigned int m_VBO;
 	unsigned int m_IBO;
 	unsigned int m_index_count;
-};
+};
+
+
 class App
 {
 	static App* instance;
@@ -35,16 +46,21 @@ public:
 	int Init();
 
 	int LoadShaders(char vShaderPath[], char  fShaderPath[]);
-	void AddTriangle(glm::vec4 a, glm::vec4 b, glm::vec4 c, glm::vec4 d);
+
+
+	OpenGLInfo LoadMesh(MyVertex* verts, unsigned nverts, MyIndicies* inds, unsigned ninds);
+	void Draw(OpenGLInfo info);
+
+
 	std::vector<tinyobj::shape_t> OBJLoader();
 	void Update();
-	
+
 	void Term();
 	//void CreateShader(ShaderType,char[],char[]);
 
 	unsigned int GetProgram()
 	{
-		return m_ProgramID;
+		return m_Shader;
 	}
 	glm::mat4 GetProjectionViewMatrix()
 	{
@@ -56,22 +72,25 @@ private:
 	glm::mat4 m_projection;// = glm::perspective(glm::pi<float>()*0.25f, 16 / 9.f, 0.1f, 1000.f);
 	glm::mat4 m_projectionViewMatrix;// = m_projection * m_view;
 	GLFWwindow* window;
-	//int m_ProgramID;
-	void App::DrawObj(std::vector<tinyobj::shape_t> &shapes);
-	
 
-	unsigned int m_VAO, m_VBO, m_IBO, m_ProgramID;
+	void App::DrawObj(std::vector<tinyobj::shape_t> &shapes);
+
+
+	unsigned int m_Shader;
 
 	float m_deltaTime;
-	
+
 	//std::vector<OpenGLInfo> m_GLInfo;
 
-
+	///Gives object orientation to the triangle ( this will help me understand more... i hope)
 	class Triangle
 	{
-		unsigned int m_VAO, m_VBO, m_IBO;
-		void AddTriangle(glm::vec4 a, glm::vec4 b, glm::vec4 c);
+	public:
+		MyVertex m_Verts[3];
+		MyIndicies* m_Inds;
+		OpenGLInfo m_Mesh;
 
+		Triangle(glm::vec4 a, glm::vec4 b, glm::vec4 c, MyIndicies* inds);
 	};
 
 };
