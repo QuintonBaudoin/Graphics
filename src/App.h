@@ -15,65 +15,89 @@
 
 struct MyVertex
 {
-	float x, y, z, w;        //Vertex
-	float nx, ny, nz;        //Normal
+	float x, y, z, w; ///Vector 4 position 
+	float r, g, b, a; /// Vector 4 color
+
+	MyVertex(float a_x, float a_y, float a_z,
+		float a_w, float a_r, float a_g, float a_b, float a_a)
+	{
+		x = a_x;
+		y = a_y;
+		z = a_z;
+		w = a_w;
+
+		r = a_r;
+		g = a_g;
+		b = a_b;
+		a = a_a;
+
+
+	};
 };
+
+
 
 struct MyIndicies
 {
-	unsigned index[3];
-	MyIndicies();
-	MyIndicies(unsigned a, unsigned b, unsigned c) { index[0] = a; index[1] = b; index[2] = c; }
+	unsigned a, b, c; /// Index order
+	MyIndicies(unsigned a_a, unsigned a_b, unsigned a_c) { a = a_a; b = a_b, c = a_c; }
 };
 
 struct OpenGLInfo
 {
-	unsigned int m_VAO;
-	unsigned int m_VBO;
-	unsigned int m_IBO;
-	unsigned int m_index_count;
+	unsigned int m_VAO; ///Vertex Array Object
+	unsigned int m_VBO; /// Vertex Buffer Object
+	unsigned int m_IBO; ///Index Buffer Object
+	unsigned int m_index_count; /// Number of index'ss
 };
 
-
+///Singleton
 class App
 {
 	static App* instance;
 
 public:
 	static App *GetInstance();
-	//enum ShaderType{Vertex, Fragment};
-
+	
+	///Initiates the program and Context Window
 	int Init();
-
+	///Loads shaders from file
 	int LoadShaders(char vShaderPath[], char  fShaderPath[]);
 
-
+	///Generates GlInfo based on verticies and indicies passed in
 	OpenGLInfo LoadMesh(MyVertex* verts, unsigned nverts, MyIndicies* inds, unsigned ninds);
 	void Draw(OpenGLInfo info);
 
-
+	///Loads OBJ and returns its shape_t
 	std::vector<tinyobj::shape_t> OBJLoader();
+	///draws Obj using Shape_t
+	void App::DrawObj(std::vector<tinyobj::shape_t> &shapes);
+
+	///Application update
 	void Update();
-
+	///Application term
 	void Term();
-	//void CreateShader(ShaderType,char[],char[]);
 
+
+	///Returns the shader
 	unsigned int GetProgram()
 	{
 		return m_Shader;
 	}
+	///Returns the projection view matrix
 	glm::mat4 GetProjectionViewMatrix()
 	{
 		return m_projectionViewMatrix;
 	}
 private:
+	/// I did say it was a singleton so yeah. No constructor for you
 	App() {};
 	glm::mat4 m_view;// = glm::lookAt(vec3(10, 10, 10), vec3(0), vec3(0, 1, 0));
 	glm::mat4 m_projection;// = glm::perspective(glm::pi<float>()*0.25f, 16 / 9.f, 0.1f, 1000.f);
 	glm::mat4 m_projectionViewMatrix;// = m_projection * m_view;
 	GLFWwindow* window;
 
-	void App::DrawObj(std::vector<tinyobj::shape_t> &shapes);
+
 
 
 	unsigned int m_Shader;
@@ -82,15 +106,15 @@ private:
 
 	//std::vector<OpenGLInfo> m_GLInfo;
 
-	///Gives object orientation to the triangle ( this will help me understand more... i hope)
-	class Triangle
+	///Objectifies my verts,indies, and gl info
+	class Shape
 	{
 	public:
-		MyVertex m_Verts[3];
-		MyIndicies* m_Inds;
-		OpenGLInfo m_Mesh;
+		MyVertex* m_Verts;  //Verticies
+		MyIndicies* m_Inds; //Indicies
+		OpenGLInfo m_Mesh;  //OpenGLInfo
 
-		Triangle(glm::vec4 a, glm::vec4 b, glm::vec4 c, MyIndicies* inds);
+		Shape(MyVertex* verts, MyIndicies* inds);
 	};
 
 };

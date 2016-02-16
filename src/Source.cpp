@@ -9,7 +9,6 @@ void main()
 
 	app->Init();
 	app->LoadShaders("./src/Vert.vert","./src/Frag.frag");
-///	app->AddTriangle();
 	app->Update();
 	app->Term();
 }
