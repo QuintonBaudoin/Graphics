@@ -19,7 +19,7 @@ struct MyVertex
 	float r, g, b, a; /// Vector 4 color
 
 	MyVertex(float a_x, float a_y, float a_z,
-		float a_w, float a_r, float a_g, float a_b, float a_a)
+	 float a_w, float a_r, float a_g, float a_b, float a_a)
 	{
 		x = a_x;
 		y = a_y;
@@ -33,6 +33,32 @@ struct MyVertex
 
 
 	};
+	MyVertex(float a_x, float a_y, float a_z, float a_w)
+	{
+		x = a_x;
+		y = a_y;
+		z = a_z;
+		w = a_w;
+
+		r = 1;
+		g = 1;
+		b = 1;
+		a = 1;
+
+
+	};
+	MyVertex()
+	{
+		x = 0;
+		y = 0;
+		z = 0;
+		w = 0;
+
+		r = 1;
+		g = 1;
+		b = 1;
+		a = 1;
+	}
 };
 
 
@@ -41,6 +67,7 @@ struct MyIndicies
 {
 	unsigned a, b, c; /// Index order
 	MyIndicies(unsigned a_a, unsigned a_b, unsigned a_c) { a = a_a; b = a_b, c = a_c; }
+	MyIndicies() { a = b = c = 0; }
 };
 
 struct OpenGLInfo
@@ -66,7 +93,8 @@ public:
 
 	///Generates GlInfo based on verticies and indicies passed in
 	OpenGLInfo LoadMesh(MyVertex* verts, unsigned nverts, MyIndicies* inds, unsigned ninds);
-	void Draw(OpenGLInfo info);
+	void DrawTriangle(OpenGLInfo info);
+	void DrawLines(OpenGLInfo info);
 
 	///Loads OBJ and returns its shape_t
 	std::vector<tinyobj::shape_t> OBJLoader();
@@ -115,6 +143,21 @@ private:
 		OpenGLInfo m_Mesh;  //OpenGLInfo
 
 		Shape(MyVertex* verts, MyIndicies* inds);
+	};
+
+	class NoiseGrid
+	{
+	public:
+		unsigned int m_Size;
+		unsigned int m_vCount;
+		unsigned int m_iCount;
+
+		MyVertex* m_Verts;  //Verticies
+		MyIndicies* m_Inds; //Indicies
+		
+
+		NoiseGrid(unsigned int size);
+		OpenGLInfo m_Mesh;  //OpenGLInfo
 	};
 
 };
