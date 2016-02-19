@@ -117,6 +117,11 @@ public:
 	{
 		return m_projectionViewMatrix;
 	}
+
+
+
+
+
 private:
 	/// I did say it was a singleton so yeah. No constructor for you
 	App() {};
@@ -126,7 +131,7 @@ private:
 	GLFWwindow* window;
 
 
-
+	
 
 	unsigned int m_Shader;
 
@@ -152,11 +157,28 @@ private:
 		unsigned int m_vCount;
 		unsigned int m_iCount;
 
+		unsigned int m_PerlinTexture;
+
 		MyVertex* m_Verts;  //Verticies
 		MyIndicies* m_Inds; //Indicies
 		
 
 		NoiseGrid(unsigned int size);
+		OpenGLInfo m_Mesh;  //OpenGLInfo
+	};
+
+	class Cube
+	{
+	public:
+		unsigned int m_Size;
+		unsigned int m_vCount;
+		unsigned int m_iCount;
+
+		MyVertex* m_Verts;  //Verticies
+		MyIndicies* m_Inds; //Indicies
+
+
+		Cube(unsigned int length, unsigned int width, unsigned height);
 		OpenGLInfo m_Mesh;  //OpenGLInfo
 	};
 

@@ -1,8 +1,11 @@
 #include "App.h"
 #include <iostream>
 
+
+#include <bitset>
+
 App *App::instance = nullptr;
-//App::App() {};
+
 App *App::GetInstance()
 {
 	if (instance == nullptr)
@@ -57,26 +60,30 @@ OpenGLInfo App::LoadMesh(MyVertex* verts, unsigned nverts, MyIndicies* inds, uns
 }
 void App::DrawTriangle(OpenGLInfo info)
 {
+	glEnable(GL_DEPTH_TEST);
 	glPolygonMode(GL_FRONT, GL_FILL);
 	glPolygonMode(GL_BACK, GL_FILL);
 	glUseProgram(m_Shader);/// Binds Shader
-	
+
 	unsigned int projectionViewUniform = glGetUniformLocation(m_Shader, "ProjectionView");/// Sets Uniform Values
 	glUniformMatrix4fv(projectionViewUniform, 1, false, glm::value_ptr(m_projectionViewMatrix));
-	
+
+	unsigned int timeUniform = glGetUniformLocation(m_Shader, "time");
+	glUniform1f(timeUniform,glfwGetTime());
+
 	glBindVertexArray(info.m_VAO);///Binds Vertex Array
-	
+
 	glDrawElements(GL_TRIANGLES, info.m_index_count, GL_UNSIGNED_INT, BUFFER_OFFSET(0));///Draws Triangle from the OpenGLInfo passed in
 	glBindVertexArray(0);
 
 }
 void App::DrawLines(OpenGLInfo info)
 {
-
+	glEnable(GL_DEPTH_TEST);
 	glPolygonMode(GL_FRONT, GL_LINE);
 	glPolygonMode(GL_BACK, GL_LINE);
 	glUseProgram(m_Shader); /// Binds Shader
-							
+
 	unsigned int projectionViewUniform = glGetUniformLocation(m_Shader, "ProjectionView");/// Sets Uniform Values
 	glUniformMatrix4fv(projectionViewUniform, 1, false, glm::value_ptr(m_projectionViewMatrix));
 	glBindVertexArray(info.m_VAO);	///Binds Vertex Array
@@ -162,7 +169,7 @@ void App::DrawObj(std::vector<tinyobj::shape_t> &shapes)
 int App::Init()
 {
 
-	m_view = glm::lookAt(glm::vec3(10, 10, 10), glm::vec3(0), glm::vec3(0, 1, 0));
+	m_view = glm::lookAt(glm::vec3(15, 7, 30), glm::vec3(5,5,0), glm::vec3(0, 1, 0));
 	m_projection = glm::perspective(glm::pi<float>()*0.25f, 16 / 9.f, 0.1f, 1000.f);
 	m_projectionViewMatrix = m_projection * m_view;
 
@@ -273,6 +280,7 @@ int App::LoadShaders(char vShaderPath[], char fShaderPath[])
 	glAttachShader(m_Shader, fs);///attaches shader to program
 	glBindAttribLocation(m_Shader, 0, "Position");///Locates layout variable
 	glBindAttribLocation(m_Shader, 1, "Color");///locates layout variable
+	glBindAttribLocation(m_Shader, 2, "Texcoord");
 	glLinkProgram(m_Shader); ///Links program with shader
 
 
@@ -295,6 +303,7 @@ int App::LoadShaders(char vShaderPath[], char fShaderPath[])
 }
 void App::Update()
 {
+	
 	glClearColor(.25f, .25f, .25f, 1);
 	glEnable(GL_DEPTH_TEST);
 	float currentTime, Time = 0.0f;
@@ -336,17 +345,21 @@ void App::Update()
 	Shape* Square = new Shape(verta, Squ);
 	Shape* Triangle = new Shape(vertb, Tri);
 
-	NoiseGrid* Grid = new NoiseGrid(8);
+	Cube* Cub = new Cube(3, 3, 3);
+
+	NoiseGrid* Grid = new NoiseGrid(16);
 
 	Square->m_Mesh = LoadMesh(Square->m_Verts, 4, Square->m_Inds, 2);
 	Triangle->m_Mesh = LoadMesh(Triangle->m_Verts, 3, Triangle->m_Inds, 1);
 	Grid->m_Mesh = LoadMesh(Grid->m_Verts, Grid->m_vCount, Grid->m_Inds, Grid->m_iCount);
+	Cub->m_Mesh = LoadMesh(Cub->m_Verts, Cub->m_vCount, Cub->m_Inds, Cub->m_iCount);
+
 	float a_time = 0;
 
 	while (glfwWindowShouldClose(window) == false && glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS)
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+
 		currentTime = (float)glfwGetTime();
 		m_deltaTime = currentTime - Time;
 		Time = currentTime;
@@ -357,9 +370,9 @@ void App::Update()
 		//DrawTriangle(Square->m_Mesh);
 		//DrawTriangle(Triangle->m_Mesh);
 
-
+		//DrawTriangle(Cub->m_Mesh);
 		DrawTriangle(Grid->m_Mesh);
-
+		//DrawLines(Cub->m_Mesh);
 
 
 		//system("pause");
@@ -388,16 +401,12 @@ void App::Term()
 	delete[] instance;
 }
 
-
-
-
 App::Shape::Shape(MyVertex* verts, MyIndicies* inds)
 {
 	m_Verts = verts;
 	m_Inds = inds;
 
 }
-
 App::NoiseGrid::NoiseGrid(unsigned int size)
 {
 	m_Size = size;
@@ -409,59 +418,117 @@ App::NoiseGrid::NoiseGrid(unsigned int size)
 	verts = new MyVertex[m_vCount];
 	//system("pause");
 
-	float* perlinData = new float[size*size];
-	float scale = (1.0f / size) * 3;
+	float* perlinData = new float[size * size];
 
-	for (unsigned row = 0; row < size * size; row+=size)
+	float scale = glfwGetTime();
+
+	for (unsigned row = 0; row < size * size; row += size)
 	{
-		
+
 		for (unsigned col = 0; col < size; col++)
 		{
-			
-		//	std::cout << row + col << std::endl;
+
+			//	std::cout << row + col << std::endl;
 			verts[row + col].x = (col);
-			
-			verts[row + col].y = glm::perlin(glm::vec2((row/size),col) * scale) * .5f + .5f;
-
-
-			verts[row + col].z = (row/size);
+			verts[row + col].y = 1;
+			verts[row + col].z = (row / size);
 			verts[row + col].w = 1;
+
+			verts[row + col].r = glm::perlin(glm::vec2(row / size, col) * scale) * 0.5f + 0.5f;
+			verts[row + col].g = glm::perlin(glm::vec2(row / size, col) * scale) * 0.5f + 0.5f;
+			verts[row + col].b = glm::perlin(glm::vec2(row / size, col) * scale) * 0.5f + 0.5f;
+
+			perlinData[row + col] = glm::perlin(glm::vec2(row/size, col) * scale) * 0.5f + 0.5f;
 			
+
 		}
 
 	}
-	
-	
+
+
 	m_Verts = verts;
 	MyIndicies* inds;
 	inds = new MyIndicies[((size - 1) * (size - 1)) * 2];
-	
+
 
 	int index = -1;
 	std::cout << m_iCount << std::endl;
 
-	for (unsigned row = 0; row < size * size; row+=size)
+	for (unsigned row = 0; row < size * size; row += size)
 	{
-		for (unsigned col = 0; col < size-1; col++)
+		for (unsigned col = 0; col < size - 1; col++)
 		{/*
 		 Unhandled exception at 0x695A4F54 (nvoglv32.dll) in Intro.exe: 0xC0000005: Access violation reading location 0x0000001C.
-		 */	
+		 */
 			if (index + 1 > m_iCount - 1)
 				break;
 			index++;
 			inds[index].a = row + col;
-			inds[index].b   = row + (col + 1);
-			inds[index].c   = (row + size) + (col + 1);
-			std::cout << index<< " " << inds[index].a << " " << inds[index].b << " " << inds[index].c << std::endl;
+			inds[index].b = row + (col + 1);
+			inds[index].c = (row + size) + (col + 1);
+
+			//std::cout << index<< " " << inds[index].a << " " << inds[index].b << " " << inds[index].c << std::endl;
 
 
 			index++;
 			inds[index].a = row + col;
 			inds[index].b = (row + size) + col;
 			inds[index].c = (row + size) + (col + 1);
-			std::cout << index << " " << inds[index].a << " " << inds[index].b << " " << inds[index].c << std::endl;
+			//std::cout << index << " " << inds[index].a << " " << inds[index].b << " " << inds[index].c << std::endl;
 		}
-	
+
 	}
 	m_Inds = inds;
+
+	glGenTextures(1, &m_PerlinTexture);
+	glBindTexture(GL_TEXTURE_2D, m_PerlinTexture);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 64, 64, 0,GL_RED, GL_FLOAT, perlinData);
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+}
+App::Cube::Cube(unsigned int length, unsigned int width, unsigned height)
+{
+	MyVertex* verts;
+	verts = new MyVertex[8];
+
+	verts[0] = MyVertex(0.f, 0.f, 0.f, 1.f,						0.f, 0.f, 0.f, 1.f);
+	verts[1] = MyVertex(1.f * length, 0.f, 0.f, 1.f,			1.f, 0.f, 0.f, 1.f);
+	verts[2] = MyVertex(1.f * length, 1.f * height, 0.f, 1.f,	0.f, 1.f, 0.f, 1.f);
+	verts[3] = MyVertex(0.f, 1.f * height, 0.f, 1.f,			0.f, 0.f, 1.f, 1.f);
+
+	verts[4] = MyVertex(0.f, 0.f, 1.f * width, 1.f,						1.f, 1.f, 1.f, 1.f);
+	verts[5] = MyVertex(1.f * length, 0.f, 1.f * width, 1.f,			0.f, 1.f, 1.f, 1.f);
+	verts[6] = MyVertex(1.f* length, 1.f * height, 1.f * width, 1.f,	1.f, 1.f, 0.f, 1.f);
+	verts[7] = MyVertex(0.f, 1.f * height, 1.f * width, 1.f,			1.f, 0.f, 1.f, 1.f);
+
+	MyIndicies* inds;
+	inds = new MyIndicies[12];
+
+	inds[0] = MyIndicies(0, 1, 2);
+	inds[1] = MyIndicies(0, 3, 2);
+	inds[2] = MyIndicies(4, 0, 3);
+
+	inds[3] = MyIndicies(4, 7, 3);
+	inds[4] = MyIndicies(4, 5, 1);
+	inds[5] = MyIndicies(4, 6, 1);
+
+	inds[6] = MyIndicies(7, 6, 5);
+	inds[7] = MyIndicies(7, 4, 5);
+	inds[8] = MyIndicies(6, 2, 1);
+
+	inds[9] = MyIndicies(6, 5, 1);
+	inds[10] = MyIndicies(3, 2, 6);
+	inds[11] = MyIndicies(3, 7, 6);
+
+	m_Verts = verts;
+	m_Inds = inds;
+	m_iCount = 12;
+	m_vCount = 8;
+
 }
