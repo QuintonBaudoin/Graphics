@@ -8,6 +8,7 @@ void main()
 	App* app = App::GetInstance();
 
 	app->Init();
+	app->LoadShaders("./src/Vert.vert","./src/Frag.frag");
 	app->Update();
 	app->Term();
 }
