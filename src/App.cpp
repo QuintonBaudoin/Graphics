@@ -58,17 +58,17 @@ OpenGLInfo App::LoadMesh(MyVertex* verts, unsigned nverts, MyIndicies* inds, uns
 
 	return GLi;
 }
-void App::DrawTriangle(OpenGLInfo info)
+void App::DrawTriangle(OpenGLInfo info, Shaders Shader )
 {
 	glEnable(GL_DEPTH_TEST);
 	glPolygonMode(GL_FRONT, GL_FILL);
 	glPolygonMode(GL_BACK, GL_FILL);
-	glUseProgram(m_Shader);/// Binds Shader
+	glUseProgram(Shader.Shader);/// Binds Shader
 
-	unsigned int projectionViewUniform = glGetUniformLocation(m_Shader, "ProjectionView");/// Sets Uniform Values
+	unsigned int projectionViewUniform = glGetUniformLocation(Shader.Shader, "ProjectionView");/// Sets Uniform Values
 	glUniformMatrix4fv(projectionViewUniform, 1, false, glm::value_ptr(m_projectionViewMatrix));
 
-	unsigned int timeUniform = glGetUniformLocation(m_Shader, "time");
+	unsigned int timeUniform = glGetUniformLocation(Shader.Shader, "time");
 	glUniform1f(timeUniform,glfwGetTime());
 
 	glBindVertexArray(info.m_VAO);///Binds Vertex Array
@@ -77,14 +77,14 @@ void App::DrawTriangle(OpenGLInfo info)
 	glBindVertexArray(0);
 
 }
-void App::DrawLines(OpenGLInfo info)
+void App::DrawLines(OpenGLInfo info, Shaders Shader)
 {
 	glEnable(GL_DEPTH_TEST);
 	glPolygonMode(GL_FRONT, GL_LINE);
 	glPolygonMode(GL_BACK, GL_LINE);
-	glUseProgram(m_Shader); /// Binds Shader
+	glUseProgram(Shader.Shader); /// Binds Shader
 
-	unsigned int projectionViewUniform = glGetUniformLocation(m_Shader, "ProjectionView");/// Sets Uniform Values
+	unsigned int projectionViewUniform = glGetUniformLocation(Shader.Shader, "ProjectionView");/// Sets Uniform Values
 	glUniformMatrix4fv(projectionViewUniform, 1, false, glm::value_ptr(m_projectionViewMatrix));
 	glBindVertexArray(info.m_VAO);	///Binds Vertex Array
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINES);
@@ -110,7 +110,7 @@ std::vector<tinyobj::shape_t> App::OBJLoader()
 //Creating GlInfo for each triangle.
 //
 //then draws based on each GLInfo.
-void App::DrawObj(std::vector<tinyobj::shape_t> &shapes)
+void App::DrawObj(std::vector<tinyobj::shape_t> &shapes, Shaders Shader)
 {
 	std::vector<OpenGLInfo> m_GLInfo;
 
@@ -152,8 +152,8 @@ void App::DrawObj(std::vector<tinyobj::shape_t> &shapes)
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-		glUseProgram(m_Shader);
-		int view_proj_uniform = glGetUniformLocation(m_Shader, "projection_view");
+		glUseProgram(Shader.Shader);
+		int view_proj_uniform = glGetUniformLocation(Shader.Shader, "projection_view");
 		glUniformMatrix4fv(view_proj_uniform, 1, GL_FALSE, (float*)&m_projection);
 		for (unsigned int i = 0; i < m_GLInfo.size(); ++i)
 		{
@@ -168,7 +168,6 @@ void App::DrawObj(std::vector<tinyobj::shape_t> &shapes)
 
 int App::Init()
 {
-
 	m_view = glm::lookAt(glm::vec3(15, 7, 30), glm::vec3(5,5,0), glm::vec3(0, 1, 0));
 	m_projection = glm::perspective(glm::pi<float>()*0.25f, 16 / 9.f, 0.1f, 1000.f);
 	m_projectionViewMatrix = m_projection * m_view;
@@ -195,10 +194,14 @@ int App::Init()
 	auto minor = ogl_GetMinorVersion();
 	printf_s("GL: %i.%i\n", major, minor);
 
+
+	m_DefaultShader = new Shaders("./src/Vert.vert", "./src/Frag.frag");
+	
 	return 1;
 }
-int App::LoadShaders(char vShaderPath[], char fShaderPath[])
+Shaders* App::LoadShaders(char vShaderPath[], char fShaderPath[])
 {
+	Shaders r_Shaders;
 
 	const char* vsSource; ///Char pointer for the Vertex Shader
 	const char* fsSource; /// Char pointer for the Fragment Shader
@@ -226,7 +229,7 @@ int App::LoadShaders(char vShaderPath[], char fShaderPath[])
 			}
 		}
 
-
+	
 
 	}
 	else ///Ife not oppend
@@ -234,7 +237,7 @@ int App::LoadShaders(char vShaderPath[], char fShaderPath[])
 		svsSource = "Failed to Open File\n"; ///Sets Shader to error message
 		printf(svsSource.c_str());///prints message
 
-		return -1;
+		return nullptr;
 	}
 	file.close(); ///closes file
 	////The below code is the same as upper code. just variable differences
@@ -251,12 +254,14 @@ int App::LoadShaders(char vShaderPath[], char fShaderPath[])
 				sfsSource = sfsSource + buff + "\n";
 			}
 		}
+
+
 	}
 	else
 	{
 		sfsSource = "Failed to Open File\n";
 		printf(sfsSource.c_str());
-		return-1;
+		return nullptr;
 	}
 
 	//////
@@ -266,7 +271,7 @@ int App::LoadShaders(char vShaderPath[], char fShaderPath[])
 	vsSource = svsSource.c_str();
 
 #pragma endregion
-
+	
 	unsigned int vs = glCreateShader(GL_VERTEX_SHADER); ///Creates vertex shader
 	unsigned int fs = glCreateShader(GL_FRAGMENT_SHADER); ///creates fragment shader
 
@@ -275,31 +280,30 @@ int App::LoadShaders(char vShaderPath[], char fShaderPath[])
 	glShaderSource(fs, 1, (const char**)&fsSource, 0); ///sets fragment shader as the file given above
 	glCompileShader(fs);
 
-	m_Shader = glCreateProgram(); ///Creates shader program
-	glAttachShader(m_Shader, vs);///Attaches shader to program
-	glAttachShader(m_Shader, fs);///attaches shader to program
-	glBindAttribLocation(m_Shader, 0, "Position");///Locates layout variable
-	glBindAttribLocation(m_Shader, 1, "Color");///locates layout variable
-	glBindAttribLocation(m_Shader, 2, "Texcoord");
-	glLinkProgram(m_Shader); ///Links program with shader
+	r_Shaders.Shader = glCreateProgram(); ///Creates shader program
+	glAttachShader(r_Shaders.Shader, vs);///Attaches shader to program
+	glAttachShader(r_Shaders.Shader, fs);///attaches shader to program
+	glBindAttribLocation(r_Shaders.Shader, 0, "Position");///Locates layout variable
+	//glBindAttribLocation(m_Shader, 1, "Color");///locates layout variable
+	glBindAttribLocation(r_Shaders.Shader, 1, "Texcoord");
+	glLinkProgram(r_Shaders.Shader); ///Links program with shader
 
 
 	int success = GL_FALSE;
-	glGetProgramiv(m_Shader, GL_LINK_STATUS, &success);
+	glGetProgramiv(r_Shaders.Shader, GL_LINK_STATUS, &success);
 	if (success == GL_FALSE)
 	{
 		int infoLogLength = 0;
-		glGetShaderiv(m_Shader, GL_INFO_LOG_LENGTH, &infoLogLength);
+		glGetShaderiv(r_Shaders.Shader, GL_INFO_LOG_LENGTH, &infoLogLength);
 		char* infoLog = new char[infoLogLength];
 
-		glGetShaderInfoLog(m_Shader, infoLogLength, 0, infoLog);
-		printf("Error: failed to link shader program! \n");
-		printf("%s \n", infoLog);
-		printf("\n");
+		
+		glGetShaderInfoLog(r_Shaders.Shader, infoLogLength, 0, infoLog);
+		printf("Error: Failed to link Shader program!\n%s\n", infoLog);
 		delete[] infoLog;
 	}
 
-	return 1;
+	return &r_Shaders;
 }
 void App::Update()
 {

@@ -60,22 +60,29 @@ struct MyVertex
 		a = 1;
 	}
 };
-
-
-
 struct MyIndicies
 {
 	unsigned a, b, c; /// Index order
 	MyIndicies(unsigned a_a, unsigned a_b, unsigned a_c) { a = a_a; b = a_b, c = a_c; }
 	MyIndicies() { a = b = c = 0; }
 };
-
 struct OpenGLInfo
 {
 	unsigned int m_VAO; ///Vertex Array Object
 	unsigned int m_VBO; /// Vertex Buffer Object
 	unsigned int m_IBO; ///Index Buffer Object
 	unsigned int m_index_count; /// Number of index'ss
+};
+struct Shaders
+{
+	unsigned int Shader;
+
+	Shaders() { Shader = 0; }
+
+	Shaders(char* vShaderPath, char* fShaderPath)
+	{
+		Shader = App::GetInstance()->LoadShaders(vShaderPath, fShaderPath)->Shader;
+	}
 };
 
 ///Singleton
@@ -86,20 +93,23 @@ class App
 public:
 	static App *GetInstance();
 	
+
+	Shaders* m_DefaultShader;
+
 	///Initiates the program and Context Window
 	int Init();
 	///Loads shaders from file
-	int LoadShaders(char vShaderPath[], char  fShaderPath[]);
+	Shaders* LoadShaders(char* vShaderPath, char* fShaderPath);
 
 	///Generates GlInfo based on verticies and indicies passed in
 	OpenGLInfo LoadMesh(MyVertex* verts, unsigned nverts, MyIndicies* inds, unsigned ninds);
-	void DrawTriangle(OpenGLInfo info);
-	void DrawLines(OpenGLInfo info);
+	void DrawTriangle(OpenGLInfo info, Shaders Shader);
+	void DrawLines(OpenGLInfo info, Shaders Shader);
 
 	///Loads OBJ and returns its shape_t
 	std::vector<tinyobj::shape_t> OBJLoader();
 	///draws Obj using Shape_t
-	void App::DrawObj(std::vector<tinyobj::shape_t> &shapes);
+	void App::DrawObj(std::vector<tinyobj::shape_t> &shapes, Shaders Shader);
 
 	///Application update
 	void Update();
@@ -110,7 +120,7 @@ public:
 	///Returns the shader
 	unsigned int GetProgram()
 	{
-		return m_Shader;
+		return m_DefaultShader->Shader;
 	}
 	///Returns the projection view matrix
 	glm::mat4 GetProjectionViewMatrix()
@@ -133,7 +143,7 @@ private:
 
 	
 
-	unsigned int m_Shader;
+	//unsigned int m_Shader;
 
 	float m_deltaTime;
 

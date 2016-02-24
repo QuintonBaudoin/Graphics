@@ -1,6 +1,12 @@
-#version 410 
-in vec4 vColor; 
+#version 410
+
 in vec2 frag_texcoord;
-out vec4 FragColor; 
-uniform sampler2D texture;
-void main() {FragColor = texture(texture,frag_texcorrd);} 
+out vec4 out_color;
+
+uniform sampler2D perlin_texture;
+
+void main()
+{
+ out_color = texture(perlin_texture,frag_texcoord).rrrr;
+ out_color.a = 1;
+}
